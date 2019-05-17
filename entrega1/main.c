@@ -30,12 +30,12 @@ void *process_request(void * sock) {
             pthread_exit(NULL);
         }
         send(sock, response, strlen(response), 0);
-        printf("Hello message sent\n");
+        printf("Ḿensagem de oi enviada\n");
     }
 }
 
 int main() {
-    printf("oi");
+    // printf("oi");
     int server_fd, new_socket;
     struct sockaddr_in address;
     int opt = 1;
@@ -83,6 +83,6 @@ int main() {
     }
 }
 
-// client: 
+// client:
 // telnet localhost 8080
 // envia qualquer mensagem

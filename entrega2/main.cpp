@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <pthread.h>
+#include <mutex>
 #include <iostream>       // std::cin, std::cout
 #include <queue>          // std::queue
 
@@ -20,33 +21,34 @@ int visitantes = 0;
 queue<int> fila_socket;
 
 void *process_request(void * n) {
-    pthread_cond_wait(&block_thread, &mutex_cond);
-    int sock;
-    sock = fila_socket.front();
-    // puts("blabla");
-    printf("%d", sock);
-    fila_socket.pop();
-    printf("%d", fila_socket);
-    char buffer[1024] = {0};
-    char response[1024]; //Tem que aumentar o tamanho do char
-    char exit_message[1024] = "sair\r\n";
+    while (!pthread_cond_wait(&block_thread, &mutex_cond)) {
+    
+        int sock;
+        sock = fila_socket.front();
+        // puts("blabla");
+        printf("%d", sock);
+        fila_socket.pop();
+        char buffer[1024] = {0};
+        char response[1024]; //Tem que aumentar o tamanho do char
+        char exit_message[1024] = "sair\r\n";
 
-    pthread_mutex_lock(&mutex_visits);
-    visitantes++;
-    sprintf(response,"Você é o #%dº visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ", visitantes);
-    pthread_mutex_unlock(&mutex_visits);
+        pthread_mutex_lock(&mutex_visits);
+        visitantes++;
+        sprintf(response,"Você é o #%dº visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ", visitantes);
+        pthread_mutex_unlock(&mutex_visits);
 
-    // sock = (int*)sock;
-    while(1) {
-        read(sock, buffer, 1024);
-        printf("%s\n", buffer);
-       
-        if(!strcmp(&buffer[1024], &exit_message[1024])) {
-            close(sock);
-            pthread_exit(NULL);
+        // sock = (int*)sock;
+        while(1) {
+            read(sock, buffer, 1024);
+            printf("%s\n", buffer);
+        
+            if(!strcmp(&buffer[1024], &exit_message[1024])) {
+                close(sock);
+                pthread_exit(NULL);
+            }
+            send(sock, response, strlen(response), 0);
+            printf("Ḿensagem de oi enviada\n");
         }
-        send(sock, response, strlen(response), 0);
-        printf("Ḿensagem de oi enviada\n");
     }
 }
 
@@ -101,8 +103,12 @@ int main() {
             perror("accept");
             exit(EXIT_FAILURE);
         }
+        pthread_mutex_lock(&mutex_cond);
+        printf("%d", new_socket);
         fila_socket.push(new_socket);
         pthread_cond_signal(&block_thread);
+        pthread_mutex_unlock(&mutex_cond);
+
         // pthread_t thread;
         // pthread_create(&thread, NULL, process_request, (void *)new_socket);
     }

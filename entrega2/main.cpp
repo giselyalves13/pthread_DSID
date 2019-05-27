@@ -14,23 +14,26 @@ using namespace std;
 #define NUMTHREADS 3
 
 pthread_mutex_t mutex_visits;
+pthread_mutex_t mutex_cond;
 pthread_cond_t  block_thread;
 int visitantes = 0;
 queue<int> fila_socket;
 
 void *process_request(void * n) {
-    pthread_cond_wait(&block_thread, &mutex_visits);
+    pthread_cond_wait(&block_thread, &mutex_cond);
     int sock;
     sock = fila_socket.front();
+    // puts("blabla");
+    printf("%d", sock);
     fila_socket.pop();
-
+    printf("%d", fila_socket);
     char buffer[1024] = {0};
     char response[1024]; //Tem que aumentar o tamanho do char
     char exit_message[1024] = "sair\r\n";
 
     pthread_mutex_lock(&mutex_visits);
     visitantes++;
-    sprintf(&response[1024], "Você é o #%dº visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ", visitantes);
+    sprintf(response,"Você é o #%dº visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ", visitantes);
     pthread_mutex_unlock(&mutex_visits);
 
     // sock = (int*)sock;
@@ -59,6 +62,7 @@ int main() {
     int addrlen = sizeof(address);
 
     pthread_mutex_init(&mutex_visits, NULL);
+    pthread_mutex_init(&mutex_cond, NULL);
     pthread_cond_init (&block_thread, NULL);
 
     // Creating socket file descriptor

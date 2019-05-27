@@ -8,8 +8,8 @@ int main(int argc , char *argv[])
 {
 	int sock;
 	struct sockaddr_in server;
-	char message[1000] , server_reply[2000];
-
+	char message[1024] , server_reply[1024];
+	//Tem que aumentar o tamanho do char de reply
 	// Criação do socket
 	sock = socket(AF_INET , SOCK_STREAM , 0);
 	if (sock == -1)
@@ -46,7 +46,7 @@ int main(int argc , char *argv[])
 		}
 
 		//Receive a reply from the server
-		if( recv(sock , server_reply , 2000 , 0) < 0)
+		if( recv(sock , server_reply , 1024 , 0) < 0)
 		{
 			puts("Falha ao receber resposta do servidor.");
 			break;

@@ -25,12 +25,11 @@ void *process_request(void * n) {
     fila_socket.pop();
 
     char buffer[1024] = {0};
-    char response[1024];
+    char response[1024]; //Tem que aumentar o tamanho do char
     char exit_message[1024] = "sair\r\n";
 
     pthread_mutex_lock(&mutex_visits);
     visitantes++;
-    // response = std::string("Você é o ") + std::to_string(visitantes) +  "º visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ";
     sprintf(&response[1024], "Você é o #%dº visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ", visitantes);
     pthread_mutex_unlock(&mutex_visits);
 

@@ -7,10 +7,7 @@
 #include <pthread.h>
 
 #define PORT 8080
-#define POOL 2
-pthread_mutex_t mutex_visits;
-int visitantes = 0;
-int count_t = 0;
+#define NUMTHREADS 20
 
 void *process_request(void * sock) {
     char buffer[1024] = {0};
@@ -27,21 +24,15 @@ void *process_request(void * sock) {
         read(sock, buffer, 1024);
         printf("%s\n", buffer);
         if(!strcmp(&buffer, &exit_message)) {
-            //não to conseguindo bater buffer que to recebendo com a mensagem de exit
             close(sock);
-            count_t--;
-            printf("count %d", count_t);
             pthread_exit(NULL);
         }
         send(sock, response, strlen(response), 0);
-        printf("Hello message sent\n");
+        printf("Ḿensagem de oi enviada\n");
     }
-
 }
-// Ao invés de enviar a mensagem de visitantes, vai enviar uma string com um cabeçalho http response com essa mesma mensagem dentro de uma estrutura simples de html
 
 int main() {
-    printf("oi");
     int server_fd, new_socket;
     struct sockaddr_in address;
     int opt = 1;
@@ -77,7 +68,6 @@ int main() {
         perror("listen");
         exit(EXIT_FAILURE);
     }
-    
     while(1) {
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
                                  (socklen_t*)&addrlen))<0)
@@ -85,18 +75,11 @@ int main() {
             perror("accept");
             exit(EXIT_FAILURE);
         }
-        printf("Conexão");
-        if (count_t < POOL){
-            pthread_t thread;
-            count_t++;
-            printf("count %d", count_t);
-            pthread_create(&thread, NULL, process_request, (void *)new_socket);
-        }else{
-            printf("Sem espaço irmão");
-        }
-        
+        pthread_t thread;
+        pthread_create(&thread, NULL, process_request, (void *)new_socket);
     }
 }
 
-// o pool ainda não faz a tribuição certa. Quando uma requisição chega e não tem mais threads livres, a requisição precisa esperar uma das threads acabar
-
+// client:
+// telnet localhost 8080
+// envia qualquer mensagem

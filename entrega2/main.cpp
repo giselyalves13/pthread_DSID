@@ -1,29 +1,45 @@
-#include <unistd.h>
+#include "unistd.h"
 #include <stdio.h>
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <pthread.h>
+#include <iostream>       // std::cin, std::cout
+#include <queue>          // std::queue
+
+using namespace std;
 
 #define PORT 8080
-#define NUMTHREADS 20
+#define NUMTHREADS 3
 
-void *process_request(void * sock) {
+pthread_mutex_t mutex_visits;
+pthread_cond_t  block_thread;
+int visitantes = 0;
+queue<int> fila_socket;
+
+void *process_request(void * n) {
+    pthread_cond_wait(&block_thread, &mutex_visits);
+    int sock;
+    sock = fila_socket.front();
+    fila_socket.pop();
+
     char buffer[1024] = {0};
     char response[1024];
     char exit_message[1024] = "sair\r\n";
 
     pthread_mutex_lock(&mutex_visits);
     visitantes++;
-    sprintf(&response, "Você é o #%dº visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ", visitantes);
+    // response = std::string("Você é o ") + std::to_string(visitantes) +  "º visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ";
+    sprintf(&response[1024], "Você é o #%dº visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ", visitantes);
     pthread_mutex_unlock(&mutex_visits);
 
-    sock = (int*)sock;
+    // sock = (int*)sock;
     while(1) {
         read(sock, buffer, 1024);
         printf("%s\n", buffer);
-        if(!strcmp(&buffer, &exit_message)) {
+       
+        if(!strcmp(&buffer[1024], &exit_message[1024])) {
             close(sock);
             pthread_exit(NULL);
         }
@@ -33,12 +49,19 @@ void *process_request(void * sock) {
 }
 
 int main() {
+    for(int i = 0; i < NUMTHREADS; i++){
+        pthread_t thread;
+        pthread_create(&thread, NULL, process_request, (void *)NULL);
+    }
+
     int server_fd, new_socket;
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
 
     pthread_mutex_init(&mutex_visits, NULL);
+    pthread_cond_init (&block_thread, NULL);
+
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
@@ -75,8 +98,10 @@ int main() {
             perror("accept");
             exit(EXIT_FAILURE);
         }
-        pthread_t thread;
-        pthread_create(&thread, NULL, process_request, (void *)new_socket);
+        fila_socket.push(new_socket);
+        pthread_cond_signal(&block_thread);
+        // pthread_t thread;
+        // pthread_create(&thread, NULL, process_request, (void *)new_socket);
     }
 }
 

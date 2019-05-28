@@ -38,6 +38,10 @@ int main(int argc , char *argv[])
 	{
 		printf("Digite uma mensagem: ");
 		scanf("%s" , message);
+		if(!strcmp(&message[1024], "sair")){
+			close(sock);
+		}
+		if (message == "sair\n") message[1024] = exit_message;
 		//Send some data
 		if( send(sock , message , strlen(message) , 0) < 0)
 		{

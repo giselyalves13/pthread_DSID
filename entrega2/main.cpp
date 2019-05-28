@@ -5,7 +5,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <pthread.h>
-#include <mutex>
+
 #include <iostream>       // std::cin, std::cout
 #include <queue>          // std::queue
 
@@ -13,29 +13,37 @@ using namespace std;
 
 #define PORT 8080
 #define NUMTHREADS 3
+typedef struct{
+    pthread_t pthread;
+    pthread_mutex_t mutex_visits;
+    pthread_mutex_t mutex_cond;
+    pthread_cond_t  block_thread;
+    pthread_cond_t  return_thread;
+}THREAD_DATA;
 
-pthread_mutex_t mutex_visits;
-pthread_mutex_t mutex_cond;
-pthread_cond_t  block_thread;
+// pthread_mutex_t mutex_visits;
+// pthread_mutex_t mutex_cond;
+// pthread_cond_t  block_thread;
 int visitantes = 0;
 queue<int> fila_socket;
+int count = 0;
 
-void *process_request(void * n) {
-    while (!pthread_cond_wait(&block_thread, &mutex_cond)) {
+void *process_request(void * t_data) {
+    THREAD_DATA *td = (THREAD_DATA *)t_data;
+    while (!pthread_cond_wait(&td->block_thread, &td->mutex_cond)) {
     
         int sock;
         sock = fila_socket.front();
-        // puts("blabla");
         printf("%d", sock);
         fila_socket.pop();
         char buffer[1024] = {0};
         char response[1024]; //Tem que aumentar o tamanho do char
-        char exit_message[1024] = "sair\r\n";
+        char exit_message[1024] = "sair\n";
 
-        pthread_mutex_lock(&mutex_visits);
+        pthread_mutex_lock(&td->mutex_visits);
         visitantes++;
         sprintf(response,"Você é o #%dº visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ", visitantes);
-        pthread_mutex_unlock(&mutex_visits);
+        pthread_mutex_unlock(&td->mutex_visits);
 
         // sock = (int*)sock;
         while(1) {
@@ -44,7 +52,8 @@ void *process_request(void * n) {
         
             if(!strcmp(&buffer[1024], &exit_message[1024])) {
                 close(sock);
-                pthread_exit(NULL);
+                count--;
+                // pthread_exit(NULL);
             }
             send(sock, response, strlen(response), 0);
             printf("Ḿensagem de oi enviada\n");
@@ -53,9 +62,13 @@ void *process_request(void * n) {
 }
 
 int main() {
+    THREAD_DATA thread[NUMTHREADS];
     for(int i = 0; i < NUMTHREADS; i++){
-        pthread_t thread;
-        pthread_create(&thread, NULL, process_request, (void *)NULL);
+        pthread_mutex_init(&thread[i].mutex_visits, NULL);
+        pthread_mutex_init(&thread[i].mutex_cond, NULL);
+        pthread_cond_init (&thread[i].block_thread, NULL);
+        pthread_cond_init (&thread[i].return_thread, NULL);
+        pthread_create(&thread[i].pthread, NULL, process_request, (void *)&thread[i]);
     }
 
     int server_fd, new_socket;
@@ -63,10 +76,7 @@ int main() {
     int opt = 1;
     int addrlen = sizeof(address);
 
-    pthread_mutex_init(&mutex_visits, NULL);
-    pthread_mutex_init(&mutex_cond, NULL);
-    pthread_cond_init (&block_thread, NULL);
-
+    
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
@@ -103,14 +113,15 @@ int main() {
             perror("accept");
             exit(EXIT_FAILURE);
         }
-        pthread_mutex_lock(&mutex_cond);
-        printf("%d", new_socket);
         fila_socket.push(new_socket);
-        pthread_cond_signal(&block_thread);
-        pthread_mutex_unlock(&mutex_cond);
-
-        // pthread_t thread;
-        // pthread_create(&thread, NULL, process_request, (void *)new_socket);
+        if(count < NUMTHREADS){
+            // pthread_mutex_lock(&thread[count].mutex_cond);
+            printf("%d", new_socket);
+            // fila_socket.push(new_socket);
+            pthread_cond_signal(&thread[count].block_thread);
+            // pthread_mutex_unlock(&thread[count].mutex_cond);
+            count++;
+        }
     }
 }
 

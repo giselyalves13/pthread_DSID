@@ -19,7 +19,7 @@ int main(int argc , char *argv[])
 	puts("Socket criado");
 
 	// server.sin_addr.s_addr = inet_addr("127.0.0.1");
-    server.sin_addr.s_addr = INADDR_ANY;
+  server.sin_addr.s_addr = INADDR_ANY;
 	server.sin_family = AF_INET;
 	server.sin_port = htons( 8080 );
 
@@ -30,7 +30,7 @@ int main(int argc , char *argv[])
 		return 1;
 	}
 
-	puts("Connected\n");
+	puts("Conectado\n");
 
     char exit_message[1024] = "sair\r\n";
 	//keep communicating with server

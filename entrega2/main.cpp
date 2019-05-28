@@ -31,7 +31,7 @@ int count = 0;
 void *process_request(void * t_data) {
     THREAD_DATA *td = (THREAD_DATA *)t_data;
     while (!pthread_cond_wait(&td->block_thread, &td->mutex_cond)) {
-    
+
         int sock;
         sock = fila_socket.front();
         printf("%d", sock);
@@ -49,7 +49,9 @@ void *process_request(void * t_data) {
         while(1) {
             read(sock, buffer, 1024);
             printf("%s\n", buffer);
-        
+
+            bzero(buffer, 1024);
+
             if(!strcmp(&buffer[1024], &exit_message[1024])) {
                 close(sock);
                 count--;
@@ -76,7 +78,7 @@ int main() {
     int opt = 1;
     int addrlen = sizeof(address);
 
-    
+
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {

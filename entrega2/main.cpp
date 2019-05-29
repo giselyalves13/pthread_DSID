@@ -50,7 +50,7 @@ void log_to_file(char *file_name, char *info) {
     time (&rawtime);
     timeinfo = localtime(&rawtime);
 
-    strftime(timenow,sizeof(timenow),"%Y%m%d%H%M%S",timeinfo);
+    strftime(timenow,sizeof(timenow),"%Y-%m-%d %H:%M:%S",timeinfo);
 
     FILE *arq;
     arq = fopen(file_name, "a");
@@ -104,25 +104,23 @@ void *process_request(void * t_data) {
 }
 
 int main() {
+    /********** Pega o tempo atual e cria um arquivo de log com o nome no formato yyyymmaahhmmss **********/
     time_t rawtime;
     struct tm * timeinfo;
     char timenow[80];
+    char filename[20];
 
     time (&rawtime);
     timeinfo = localtime(&rawtime);
-
-    char filename[20];
-
-
 
     strftime(timenow,sizeof(timenow),"%Y%m%d%H%M%S",timeinfo);
 
     strcpy(filename, timenow);
     strcat(filename, ".txt");
 
-    log_to_file(filename, filename);
-    printf("Arquivo de log criado com o nome: %s\n", filename);
 
+    log_to_file(filename, "[OK] Servidor iniciado.");
+    printf("Arquivo de log criado com o nome: %s\n", filename);
 
 
     // FILE* arq;

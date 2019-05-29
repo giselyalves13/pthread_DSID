@@ -42,6 +42,8 @@ int count = 0;
 // nome do arquivo de log: timestamp.txt
 // std::string url = timestamp_now + ".txt";
 
+
+
 void log_to_file(char *file_name, char *info) {
     time_t rawtime;
     struct tm * timeinfo;
@@ -74,16 +76,18 @@ void *process_request(void * t_data) {
 
         int sock;
         sock = fila_socket.front();
-        printf("%d", sock);
+        // printf("%d", sock);
+        log_to_file(filename, "[OK] Socket removido da fila.");
         fila_socket.pop();
         char buffer[1024] = {0};
-        char response[1024]; //Tem que aumentar o tamanho do char
+        char response[1024];
         char exit_message[1024] = "sair\n";
 
         pthread_mutex_lock(&td->mutex_visits);
         visitantes++;
         sprintf(response,"Você é o #%dº visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ", visitantes);
         pthread_mutex_unlock(&td->mutex_visits);
+        log_to_file(filename, "[OK] Thread desbloqueada.");
 
         // sock = (int*)sock;
         while(1) {
@@ -95,9 +99,10 @@ void *process_request(void * t_data) {
             if(!strcmp(&buffer[1024], &exit_message[1024])) {
                 close(sock);
                 count--;
-                // pthread_exit(NULL);
+
             }
             send(sock, response, strlen(response), 0);
+            log_to_file(filename, "[ERRO] Mensagem de boas-vindas enviada.");
             printf("Ḿensagem de oi enviada\n");
         }
     }
@@ -105,18 +110,18 @@ void *process_request(void * t_data) {
 
 int main() {
     /********** Pega o tempo atual e cria um arquivo de log com o nome no formato yyyymmaahhmmss **********/
-    time_t rawtime;
-    struct tm * timeinfo;
-    char timenow[80];
-    char filename[20];
+    // time_t rawtime;
+    // struct tm * timeinfo;
+    // char timenow[80];
+    // char filename[20];
 
-    time (&rawtime);
-    timeinfo = localtime(&rawtime);
+    // time (&rawtime);
+    // timeinfo = localtime(&rawtime);
 
-    strftime(timenow,sizeof(timenow),"%Y%m%d%H%M%S",timeinfo);
+    // strftime(timenow,sizeof(timenow),"%Y%m%d%H%M%S",timeinfo);
 
-    strcpy(filename, timenow);
-    strcat(filename, ".txt");
+    // strcpy(filename, timenow);
+    // strcat(filename, ".txt");
 
 
     log_to_file(filename, "[OK] Servidor iniciado.");
@@ -152,6 +157,8 @@ int main() {
         pthread_create(&thread[i].pthread, NULL, process_request, (void *)&thread[i]);
     }
 
+    log_to_file(filename, "[OK] threads inicializadas.");
+
     int server_fd, new_socket;
     struct sockaddr_in address;
     int opt = 1;
@@ -160,6 +167,7 @@ int main() {
     // Criação de arquivo de descrição do socket
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
+        log_to_file(filename, "[ERRO] Falha na criação do socket.");
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
@@ -174,30 +182,31 @@ int main() {
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons( PORT );
 
-    if (bind(server_fd, (struct sockaddr *)&address,
-             sizeof(address))<0)
-    {
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) {
+        log_to_file(filename, "[ERRO] Falha no bind.");
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
-    if (listen(server_fd, 3) < 0)
-    {
+    if (listen(server_fd, 3) < 0) {
+        log_to_file(filename, "[ERRO]. Falha ao escutar por conexões.");
         perror("listen");
         exit(EXIT_FAILURE);
     }
 
+    log_to_file(filename, "[OK] Socket criado. Aguardando conexões...");
+
     // Rodar para sempre para que o servidor fique escutando à espera de novas conexões.
     while(1) {
-        if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
-                                 (socklen_t*)&addrlen))<0)
-        {
+        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) {
+            log_to_file(filename, "[ERRO] Falha ao aceitar conexão.");
             perror("accept");
             exit(EXIT_FAILURE);
         }
         fila_socket.push(new_socket);
         if(count < NUMTHREADS){
             // pthread_mutex_lock(&thread[count].mutex_cond);
-            printf("%d", new_socket);
+            // printf("%d", new_socket);
+            log_to_file(filename, "[OK] Socket adicionado à fila.");
             // fila_socket.push(new_socket);
             pthread_cond_signal(&thread[count].block_thread);
             // pthread_mutex_unlock(&thread[count].mutex_cond);

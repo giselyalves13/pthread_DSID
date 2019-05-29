@@ -5,14 +5,20 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <pthread.h>
+#include <ctime>
 
 #include <iostream>       // std::cin, std::cout
 #include <queue>          // std::queue
 
 using namespace std;
 
+// Porta de conexão de socket será a 8080
 #define PORT 8080
-#define NUMTHREADS 3
+
+// Número de threads a serem criadas
+#define NUMTHREADS 10
+
+// dados da thread
 typedef struct{
     pthread_t pthread;
     pthread_mutex_t mutex_visits;
@@ -21,13 +27,47 @@ typedef struct{
     pthread_cond_t  return_thread;
 }THREAD_DATA;
 
-// pthread_mutex_t mutex_visits;
-// pthread_mutex_t mutex_cond;
-// pthread_cond_t  block_thread;
+// *********** VARIÁVEIS GLOBAIS ********* //
+// do número de clientes conectados ao servidor.
 int visitantes = 0;
+
+// fila de sockets
 queue<int> fila_socket;
+
+// contador
 int count = 0;
 
+// timestamp de agora
+// std::string timestamp_now = std::to_string((int)time(NULL));
+// nome do arquivo de log: timestamp.txt
+// std::string url = timestamp_now + ".txt";
+
+void log_to_file(char *file_name, char *info) {
+    time_t rawtime;
+    struct tm * timeinfo;
+    char timenow[80];
+
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(timenow,sizeof(timenow),"%Y%m%d%H%M%S",timeinfo);
+
+    FILE *arq;
+    arq = fopen(file_name, "a");
+    if(arq == NULL) {
+        printf("Erro. Não foi possível criar o arquivo de log.");
+    } else {
+        fprintf(arq, "%s - ", timenow);
+        fprintf(arq, "%s\r\n", info);
+        // puts("\r\n", arq);
+    }
+    fclose(arq);
+    // open file
+    // save text to file
+    // close file
+}
+
+// ********* Método que trata as requisições ao servidor ********* //
 void *process_request(void * t_data) {
     THREAD_DATA *td = (THREAD_DATA *)t_data;
     while (!pthread_cond_wait(&td->block_thread, &td->mutex_cond)) {
@@ -64,7 +104,48 @@ void *process_request(void * t_data) {
 }
 
 int main() {
+    time_t rawtime;
+    struct tm * timeinfo;
+    char timenow[80];
+
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    char filename[20];
+
+
+
+    strftime(timenow,sizeof(timenow),"%Y%m%d%H%M%S",timeinfo);
+
+    strcpy(filename, timenow);
+    strcat(filename, ".txt");
+
+    log_to_file(filename, filename);
+    printf("Arquivo de log criado com o nome: %s\n", filename);
+
+
+
+    // FILE* arq;
+    // // abrindo arquivo no modo de leitura
+    // arq = fopen(url, "w");
+    // if (arq == NULL) {
+    //     printf("Erro, nâo foi possível criar o arquivo de log.");
+    // }
+    // else {
+    //     fputc("Inicialização do servidor", arq);
+    //     fclose(arq);
+    // }
+
+
+    // Print na tela
+    // std::cout << timestamp_now << '\n' ;
+
+     // printf("Timestamp: %d\n",(int)time(NULL));
+
+    // Criação de vetor de threads, com tamanho NUMTHREADS definido pelo  #define acima
     THREAD_DATA thread[NUMTHREADS];
+
+    // Inicialização do vetor de threads com valores nulos
     for(int i = 0; i < NUMTHREADS; i++){
         pthread_mutex_init(&thread[i].mutex_visits, NULL);
         pthread_mutex_init(&thread[i].mutex_cond, NULL);
@@ -78,25 +159,23 @@ int main() {
     int opt = 1;
     int addrlen = sizeof(address);
 
-
-    // Creating socket file descriptor
+    // Criação de arquivo de descrição do socket
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
 
-    // Forcefully attaching socket to the port 8080
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
-                   &opt, sizeof(opt)))
-    {
+    // Atando o socket à porta 8080 à força.
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
         perror("setsockopt");
         exit(EXIT_FAILURE);
     }
+
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons( PORT );
-    // Forcefully attaching socket to the port 8080
+
     if (bind(server_fd, (struct sockaddr *)&address,
              sizeof(address))<0)
     {
@@ -108,6 +187,8 @@ int main() {
         perror("listen");
         exit(EXIT_FAILURE);
     }
+
+    // Rodar para sempre para que o servidor fique escutando à espera de novas conexões.
     while(1) {
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
                                  (socklen_t*)&addrlen))<0)

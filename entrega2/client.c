@@ -6,6 +6,8 @@
 #include <string.h>
 int main(int argc , char *argv[])
 {
+	//Criar um for em volta da conexão para criar varios clientes
+	//receber a string do server e guardar num arquivo
 	int sock;
 	struct sockaddr_in server;
 	char message[1024] , server_reply[1024];
@@ -19,7 +21,7 @@ int main(int argc , char *argv[])
 	puts("Socket criado");
 
 	// server.sin_addr.s_addr = inet_addr("127.0.0.1");
-  server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_addr.s_addr = INADDR_ANY;
 	server.sin_family = AF_INET;
 	server.sin_port = htons( 8080 );
 
@@ -32,16 +34,17 @@ int main(int argc , char *argv[])
 
 	puts("Conectado\n");
 
-    char exit_message[1024] = "sair\r\n";
+    char exit_message[1024] = "sair";
 	//keep communicating with server
-	while(1)
-	{
-		printf("Digite uma mensagem: ");
-		scanf("%s" , message);
+	// while(1)
+	// {
+		// printf("Digite uma mensagem: ");
+		// scanf("%s" , message);
+		sprintf(message, "GET /");
 		if(!strcmp(&message[1024], "sair")){
 			close(sock);
 		}
-		if (message == "sair\n") message[1024] = exit_message;
+
 		//Send some data
 		if( send(sock , message , strlen(message) , 0) < 0)
 		{
@@ -53,14 +56,18 @@ int main(int argc , char *argv[])
 		if( recv(sock , server_reply , 1024 , 0) < 0)
 		{
 			puts("Falha ao receber resposta do servidor.");
-			break;
+			// break;
 		}
 
 		puts("Resposta do servidor: ");
 		puts(server_reply);
-	}
+	// }
 
-	close(sock);
+	// puts("Para sair envie 'sair'");
+	// scanf("%s" , message);
+	// send(sock , message , strlen(message), 0);
+
+	// close(sock);
 	return 0;
 }
 

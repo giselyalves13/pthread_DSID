@@ -6,7 +6,6 @@
 #include <string.h>
 #include <pthread.h>
 #include <ctime>
-
 #include <iostream>       // std::cin, std::cout
 #include <queue>          // std::queue
 
@@ -38,10 +37,10 @@ queue<int> fila_socket;
 int count = 0;
 
 // timestamp de agora
-// std::string timestamp_now = std::to_string((int)time(NULL));
+std::string timestamp_now = std::to_string((int)time(NULL));
 // nome do arquivo de log: timestamp.txt
-// std::string url = timestamp_now + ".txt";
-
+std::string url = timestamp_now + ".txt";
+char filename[20];
 
 
 void log_to_file(char *file_name, char *info) {
@@ -81,7 +80,7 @@ void *process_request(void * t_data) {
         fila_socket.pop();
         char buffer[1024] = {0};
         char response[1024];
-        char exit_message[1024] = "sair\n";
+        char exit_message[1024] = "sair";
 
         pthread_mutex_lock(&td->mutex_visits);
         visitantes++;
@@ -89,46 +88,53 @@ void *process_request(void * t_data) {
         pthread_mutex_unlock(&td->mutex_visits);
         log_to_file(filename, "[OK] Thread desbloqueada.");
 
-        // sock = (int*)sock;
-        while(1) {
-            read(sock, buffer, 1024);
-            printf("%s\n", buffer);
-
-            bzero(buffer, 1024);
-
-            if(!strcmp(&buffer[1024], &exit_message[1024])) {
-                close(sock);
-                count--;
-
-            }
+        read(sock, buffer, 1024);
+        printf("%s\n", buffer);
+        char get[1024] = "GET /";
+        if(!strcmp(buffer, get)){
             send(sock, response, strlen(response), 0);
             log_to_file(filename, "[ERRO] Mensagem de boas-vindas enviada.");
             printf("Ḿensagem de oi enviada\n");
-        }
+            printf("Cliente saiu");
+
+            close(sock);
+            count--; 
+            }
+            else{
+                printf("404");
+                close(sock);
+                printf("Cliente saiu");
+                count--;
+
+            }
+            bzero(buffer, 1024);
+
+        
+
     }
 }
 
 int main() {
     /********** Pega o tempo atual e cria um arquivo de log com o nome no formato yyyymmaahhmmss **********/
-    // time_t rawtime;
-    // struct tm * timeinfo;
-    // char timenow[80];
+    time_t rawtime;
+    struct tm * timeinfo;
+    char timenow[80];
     // char filename[20];
 
-    // time (&rawtime);
-    // timeinfo = localtime(&rawtime);
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
 
-    // strftime(timenow,sizeof(timenow),"%Y%m%d%H%M%S",timeinfo);
+    strftime(timenow,sizeof(timenow),"%Y%m%d%H%M%S",timeinfo);
 
-    // strcpy(filename, timenow);
-    // strcat(filename, ".txt");
+    strcpy(filename, timenow);
+    strcat(filename, ".txt");
 
 
     log_to_file(filename, "[OK] Servidor iniciado.");
     printf("Arquivo de log criado com o nome: %s\n", filename);
 
 
-    // FILE* arq;
+    FILE* arq;
     // // abrindo arquivo no modo de leitura
     // arq = fopen(url, "w");
     // if (arq == NULL) {
@@ -204,12 +210,12 @@ int main() {
         }
         fila_socket.push(new_socket);
         if(count < NUMTHREADS){
-            // pthread_mutex_lock(&thread[count].mutex_cond);
-            // printf("%d", new_socket);
+            pthread_mutex_lock(&thread[count].mutex_cond);
+            printf("%d", new_socket);
             log_to_file(filename, "[OK] Socket adicionado à fila.");
-            // fila_socket.push(new_socket);
+            fila_socket.push(new_socket);
             pthread_cond_signal(&thread[count].block_thread);
-            // pthread_mutex_unlock(&thread[count].mutex_cond);
+            pthread_mutex_unlock(&thread[count].mutex_cond);
             count++;
         }
     }

@@ -15,7 +15,7 @@ using namespace std;
 #define PORT 8080
 
 // Número de threads a serem criadas
-#define NUMTHREADS 10
+#define NUMTHREADS 3
 
 // dados da thread
 typedef struct{

@@ -5,9 +5,9 @@
 #include <netinet/in.h>
 #include <string.h>
 
-#define NUMTHREADS 10
+#define NUMSOCKETS 10
 int main(int argc, char *argv[]) {
-	for (int i=0; i < NUMTHREADS; i++) {
+	for (int i=0; i < NUMSOCKETS; i++) {
 
 		// Criação do arquivo html
   	char str[10];

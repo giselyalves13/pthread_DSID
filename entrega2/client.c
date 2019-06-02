@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 		if (arq == NULL) {
 			printf("Erro: não foi possível abrir o arquivo html.");
 		} else {
-			fprintf(arq, "<h1>%s</h1>\n</body></html>", server_reply);
+			fprintf(arq, "<h1>%s</h1>\n</body>\n</html>", server_reply);
 		}
 		fclose(arq);
 		// return 0;

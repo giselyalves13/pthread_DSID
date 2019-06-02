@@ -57,3 +57,14 @@
 2019-06-01 23:14:00 - [OK] Socket adicionado à fila.
 2019-06-01 23:14:00 - [OK] Socket removido da fila.
 2019-06-01 23:14:00 - [OK] Thread desbloqueada.
+2019-06-01 23:26:21 - [OK] Socket adicionado à fila.
+2019-06-01 23:26:21 - [OK] Socket removido da fila.
+2019-06-01 23:26:21 - [OK] Thread desbloqueada.
+2019-06-01 23:26:21 - [ERRO] Mensagem de boas-vindas enviada.
+2019-06-01 23:26:28 - [OK] Socket adicionado à fila.
+2019-06-01 23:26:28 - [OK] Socket removido da fila.
+2019-06-01 23:26:28 - [OK] Thread desbloqueada.
+2019-06-01 23:26:46 - [OK] Socket adicionado à fila.
+2019-06-01 23:26:46 - [OK] Socket removido da fila.
+2019-06-01 23:26:46 - [OK] Thread desbloqueada.
+2019-06-01 23:26:46 - [ERRO] Mensagem de boas-vindas enviada.

@@ -90,7 +90,7 @@ void *process_request(void *t_data)
 
         pthread_mutex_lock(&td->mutex_visits);
         visitantes++;
-        sprintf(response, "Você é o #%dº visitante!!! Muito obrigada :) Para sair basta enviar \"sair\".\n ", visitantes);
+        sprintf(response, "Você é o #%dº visitante!!! Muito obrigada :)\n ", visitantes);
         pthread_mutex_unlock(&td->mutex_visits);
         log_to_file(filename, "[OK] Thread desbloqueada.");
 

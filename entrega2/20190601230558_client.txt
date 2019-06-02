@@ -1,0 +1,1 @@
+2019-06-01 23:05:58 - [OK] Servidor iniciado.

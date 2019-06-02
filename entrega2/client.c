@@ -4,8 +4,16 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+	FILE *arq;
+	arq = fopen("client.html", "w");
+	if (arq == NULL) {
+		printf("Erro: não foi possível criar o arquivo html.");
+	} else {
+		fprintf(arq, "<html>\n<head><title>Cliente</title></head>\n<body>\n");
+	}
+	fclose(arq);
+
 	//Criar um for em volta da conexão para criar varios clientes
 	//receber a string do server e guardar num arquivo
 	int sock;
@@ -26,8 +34,7 @@ int main(int argc, char *argv[])
 	server.sin_port = htons(8080);
 
 	//Connect to remote server
-	if (connect(sock, (struct sockaddr *)&server, sizeof(server)) < 0)
-	{
+	if (connect(sock, (struct sockaddr *)&server, sizeof(server)) < 0) {
 		perror("Conexão falhou. Erro.");
 		return 1;
 	}
@@ -62,6 +69,14 @@ int main(int argc, char *argv[])
 
 	puts("Resposta do servidor: ");
 	puts(server_reply);
+	arq = fopen("client.html", "a");
+	if (arq == NULL) {
+		printf("Erro: não foi possível abrir o arquivo html.");
+	} else {
+		fprintf(arq, "<h1>%s</h1>\n</body></html>", server_reply);
+	}
+	fclose(arq);
+
 	// }
 
 	// puts("Para sair envie 'sair'");

@@ -1,0 +1,3 @@
+2019-05-30 22:49:22 - [OK] Servidor iniciado.
+2019-05-30 22:49:22 - [OK] threads inicializadas.
+2019-05-30 22:49:22 - [OK] Socket criado. Aguardando conexões...

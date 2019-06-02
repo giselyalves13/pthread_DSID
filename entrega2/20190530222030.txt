@@ -1,0 +1,10 @@
+2019-05-30 22:20:30 - [OK] Servidor iniciado.
+2019-05-30 22:20:30 - [OK] threads inicializadas.
+2019-05-30 22:20:30 - [OK] Socket criado. Aguardando conexões...
+2019-05-30 22:20:35 - [OK] Socket adicionado à fila.
+2019-05-30 22:20:35 - [OK] Socket removido da fila.
+2019-05-30 22:20:35 - [OK] Thread desbloqueada.
+2019-05-30 22:20:35 - [ERRO] Mensagem de boas-vindas enviada.
+2019-05-30 22:20:55 - [OK] Socket adicionado à fila.
+2019-05-30 22:20:55 - [OK] Socket removido da fila.
+2019-05-30 22:20:55 - [OK] Thread desbloqueada.
